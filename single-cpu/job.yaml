@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: single-cpu-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: app-runner
+        image: tensorflow/tensorflow:latest-gpu
+        command: ["/bin/bash","-c", "nvidia-smi && grep MemTotal /proc/meminfo && touch /examplevol/test.txt"]
+        volumeMounts:
+        - name: git-repo
+          mountPath: /opt/repo
+        - mountPath: /examplevol
+          name: examplevol
+        resources:
+          limits:
+            memory: 48Gi
+            cpu: "6"
+            nvidia.com/gpu: "2"
+          requests:
+            memory: 4Gi
+            cpu: "2"
+            nvidia.com/gpu: "2"
+      initContainers:
+      - name: init-clone-repo
+        image: alpine/git
+        args:
+          - clone
+          - --single-branch
+          - https://github.com/parsley9877/kubernete-multi-gpu-job-sample.git
+          - /opt/repo/kubernete-multi-gpu-job-sample
+        volumeMounts:
+          - name: git-repo
+            mountPath: /opt/repo
+      volumes:
+      - name: git-repo
+        emptyDir: {}
+      - name: examplevol
+        persistentVolumeClaim:
+          claimName: test-vol
+      restartPolicy: Never
+  backoffLimit: 5
