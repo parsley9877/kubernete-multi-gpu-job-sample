@@ -19,13 +19,14 @@ def job(network, inp):
 def main(argv):
     del argv
     visible_devices = tf.config.get_visible_devices()
+    print(visible_devices)
     print('Single CPU Job Started...')
     x = np.arange(100).reshape([10, 10])
     x = tf.constant(x, dtype=tf.float32)
     net = Net(x)
     current_state = net.state
     print('starting job...')
-    for i in range(flags.FLAGS.num):
+    for i in range(100):
         net.update(current_state)
         print(str(i) + ' iteration: ')
     print('Job Done!')
